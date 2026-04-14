@@ -1,0 +1,14 @@
+[project]
+name = "telegram-bot-backups"
+version = "0.1.0"
+description = "Telegram bot for WordPress backup management"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "aiogram>=3.17.0",
+    "sqlalchemy[asyncio]>=2.0.0",
+    "aiosqlite>=0.20.0",
+    "alembic>=1.14.0",
+    "pydantic-settings>=2.7.0",
+    "apscheduler>=3.11.0",
+]
