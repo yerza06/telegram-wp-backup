@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -14,6 +14,11 @@ class SiteSettings(BaseModel):
     db_name: str
     db_user: str
     db_pass: str
+
+    @field_validator("wp_path")
+    @classmethod
+    def strip_trailing_slash(cls, v: str) -> str:
+        return v.rstrip("/")
 
 
 class BackupSettings(BaseModel):

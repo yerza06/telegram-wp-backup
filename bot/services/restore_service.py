@@ -216,12 +216,11 @@ async def _rollback(
         except Exception:
             pass
 
-        # Remove new (possibly partial) wp files
-        if os.path.exists(wp_path):
-            shutil.rmtree(wp_path, ignore_errors=True)
-
-        # Restore old files
+        # Only remove wp_path and restore snapshot if the atomic swap already happened.
+        # If wp_snapshot doesn't exist, the swap never ran — original files may still be at wp_path.
         if os.path.exists(wp_snapshot):
+            if os.path.exists(wp_path):
+                shutil.rmtree(wp_path, ignore_errors=True)
             os.rename(wp_snapshot, wp_path)
 
         # Restore DB from safety snapshot
