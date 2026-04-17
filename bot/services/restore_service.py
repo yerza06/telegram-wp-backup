@@ -251,24 +251,22 @@ async def _rollback(
 
 
 async def _wp_maintenance(on: bool) -> None:
-    import shutil as _shutil
-    if not _shutil.which("wp"):
-        raise RuntimeError(
-            "WP-CLI не найден. Установите по инструкции: https://wp-cli.org/\n"
-            "Восстановление без WP-CLI невозможно."
+    # WordPress treats presence of .maintenance file as maintenance mode — no WP-CLI needed.
+    maintenance_file = os.path.join(settings.site.wp_path, ".maintenance")
+    if on:
+        content = f"<?php $upgrading = {int(__import__('time').time())};"
+        with open(maintenance_file, "w") as f:
+            f.write(content)
+        proc = await asyncio.create_subprocess_exec(
+            "chown", "www-data:www-data", maintenance_file,
+            stderr=asyncio.subprocess.PIPE,
         )
-
-    action = "activate" if on else "deactivate"
-    proc = await asyncio.create_subprocess_exec(
-        "sudo", "-u", "www-data",
-        "wp", "maintenance-mode", action,
-        f"--path={settings.site.wp_path}",
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-    )
-    _, stderr = await proc.communicate()
-    if proc.returncode != 0:
-        raise RuntimeError(f"wp maintenance-mode {action} failed: {stderr.decode()}")
+        await proc.communicate()
+    else:
+        try:
+            os.remove(maintenance_file)
+        except FileNotFoundError:
+            pass
 
 
 async def orphan_recovery_restores(
